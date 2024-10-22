@@ -1,5 +1,11 @@
 .DS_Store
 
+.gnupg
+.gitmessage
+.gitconfig
+.config
+.vim_mru_files
+
 .bash_history
 .bash_profile
 .viminfo
