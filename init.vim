@@ -58,6 +58,9 @@ set encoding=utf8
 " 开启 modeline 支持
 set modeline
 
+" 打通系统剪切板
+set clipboard=unnamedplus
+
 " F 开启 Buffer Explorer
 nmap F :BufExplorer<CR>
 nnoremap <silent> ,F F
