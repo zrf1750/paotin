@@ -1,4 +1,15 @@
+#nop vim: set filetype=tt:;
+
+/*
+本文件属于 PaoTin++ 的一部分。
+PaoTin++ © 2020~2024 的所有版权均由担子炮(dzp <danzipao@gmail.com>) 享有并保留一切法律权利
+你可以在遵照 GPLv3 协议的基础之上使用、修改及重新分发本程序。
+*/
+
+#nop 绑定事件，发生何种事件时，需要更新 UI;
 #var tmux-update-events[DEFAULT] {char/score};
+
+#nop tmux pane 边框的样式;
 #var tmux-pane-border-format[DEFAULT] {
     {left}      {ID: [<g23><188>\$char[档案][账号]<099>]}
     {centre}    {大名: [\$char[档案][大名]]}
