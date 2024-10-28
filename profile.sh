@@ -13,7 +13,7 @@ set -o vi
 bind '"\C-n": history-search-forward'
 bind '"\C-p": history-search-backward'
 
-alias ll='ls -l'
-alias l='ls -lah'
+alias ll='ls --color -lh'
+alias l='ls --color -lah'
 alias vim=nvim
 alias vi=nvim
