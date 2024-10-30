@@ -240,6 +240,14 @@ VAR {命令输入提示符} prompt-prompt {Input};
 
     #foreach {*prompt-fields[]} {idx} {
         #local field {$prompt-fields[$idx]};
+
+        #nop 如果全局开关已经禁用，则跳过所有字段，除了 BotSepBar;
+        #if { "$prompt-dict[disable][value]" != "" } {
+            #if { "$field[place]" != "BotSepBar" } {
+                #continue;
+            };
+        };
+
         #if { "$field[visibility]" == "" } {
             #local field[visibility] {HideEmpty};
         };
@@ -563,7 +571,7 @@ VAR {命令输入提示符} prompt-prompt {Input};
             #local mins {($secs % 3600) / 60};
             #format ret {%d小时%d分} {$hour} {$mins};
         };
-        #elseif { $secs > 600 } {
+        #elseif { $secs > 180 } {
             #local mins {};
             #math mins  {$secs / 60};
             #math secs  {$secs % 60};
