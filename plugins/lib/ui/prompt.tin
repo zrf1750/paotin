@@ -224,6 +224,9 @@ VAR {命令输入提示符} prompt-prompt {Input};
     };
 };
 
+#nop 备份的之前的内容，只有新内容与当前正在显示的内容不同时，才会刷新。;
+#var prompt.current-content {};
+
 #nop 显示字段值;
 #alias {prompt.refresh} {
     #local topMaxLine   {0};
@@ -401,12 +404,18 @@ VAR {命令输入提示符} prompt-prompt {Input};
         #var prompt-top-max-line {$topMaxLine};
         #var prompt-bot-max-line {$botMaxLine};
         #split {$topMaxLine} {$botMaxLine};
+        #var prompt.current-content {};
         #buffer end;
     };
 
     #local idx {};
     #foreach {*content[]} {idx} {
         #local line {$content[$idx]};
+        #if { {$prompt.current-content[=$line[line]]} === {$line[text]} } {
+            #continue;
+        };
+
+        #var prompt.current-content[=$line[line]] {$line[text]};
         #echo {{%s}{$line[line]}} {$line[text]};
     };
 
