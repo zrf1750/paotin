@@ -537,31 +537,49 @@ VAR {命令输入提示符} prompt-prompt {Input};
     #local secs     {%2};
     #local ret      {};
 
-    #if { "$type" == "Auto" } {
-        #if { $secs < 600 } {
-            #local type {Seconds};
-        };
-        #else {
-            #local type {Clock};
-        };
-    };
-
     #if { "$type" == "Seconds" } {
         #local ret {${secs}s};
     };
+    #elseif { "$type" == "Auto" } {
+        #if { $secs > 86400 } {
+            #local day {};
+            #math day {$secs / 86400};
+            #local hour {};
+            #math hour {($secs % 86400) / 3600};
+            #format ret {%d天%d小时} {$day} {$hour};
+        };
+        #elseif { $secs > 3600 } {
+            #local hour {};
+            #math hour {$secs / 3600};
+            #local mins {($secs % 3600) / 60};
+            #format ret {%d小时%d分} {$hour} {$mins};
+        };
+        #elseif { $secs > 600 } {
+            #local mins {};
+            #math mins  {$secs / 60};
+            #math secs  {$secs % 60};
+            #format ret {00:%%02d:%%02d} {$mins} {$secs};
+        };
+        #else {
+            #local ret {${secs}s};
+        };
+    };
     #elseif { "$type" == "Clock" } {
         #if { $secs > 86400 } {
-            #math ret {$secs / 86400};
-            #local ret {$ret天};
+            #local day {};
+            #math day {$secs / 86400};
             #math secs {$secs % 86400};
+            #format ret {%d天} {$day};
         };
 
         #local hour {};
         #local mins {};
+
         #math hour  {$secs / 3600};
         #math secs  {$secs % 3600};
         #math mins  {$secs / 60};
         #math secs  {$secs % 60};
+
         #format ret {%s%%02d:%%02d:%%02d} {$ret} {$hour} {$mins} {$secs};
     };
 
