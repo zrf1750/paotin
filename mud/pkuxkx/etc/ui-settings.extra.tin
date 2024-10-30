@@ -37,6 +37,9 @@
     { {place}{Bot} {line}{1}    {label}{现金}       {name}{cash}     {width}{10} {cooldown}{600}   }
     { {place}{Bot} {line}{1}    {label}{收益速度}   {name}{profit}   {width}{10} {cooldown}{600}   }
 
+    { {place}{Bot} {line}{1}    {label}{奖励最佳}   {name}{weekBest} {width}{6} {visibility}{Always} {color}{<129>} }
+    { {place}{Bot} {line}{1}    {label}{加成周}     {name}{weekBuff} {width}{6} {visibility}{Always} {color}{<129>} }
+
     { {place}{Bot} {line}{2}    {label}{不利战况}   {name}{chousui}  {visibility}{Always}    {cooldown}{60} }
     { {place}{Bot} {line}{2}    {label}{透骨钉}     {name}{tougu}    {visibility}{HideLabel} {cooldown}{60} }
     { {place}{Bot} {line}{2}    {label}{刺穴}       {name}{cixue}    {visibility}{HideLabel} {cooldown}{60} }

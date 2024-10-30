@@ -50,7 +50,7 @@ load-lib alert;
     chat.log {%3} {%0};
 } {4.994};
 
-#nop 多行的 emote 表情;
+#nop 多行的 emote 表情，或者系统消息播报;
 #action {~^%c【%+2..5u】%*$E} {
     chat.log-multi-line {%2} {%0};
 } {4.995};
