@@ -270,8 +270,11 @@ VAR {任务CD状态查询结果} gJobState {};
         okLog 任务 CD 状态已更新，以下任务正在进行中:$doingStr，以下任务仍然处于 CD 中:$cdStr;
     };
 
+    event.Emit env/week/update;
     prompt.Set {{weekBest}{$env.Week[best]}};
     prompt.Set {{weekBuff}{$env.Week[buff]}};
+    prompt.Set {{weekNormal}{$env.Week[normal]}};
+    prompt.Set {{weekDebuff}{$env.Week[debuff]}};
 
     event.Emit {jobquery};
 };
