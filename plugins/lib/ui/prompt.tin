@@ -76,12 +76,13 @@ PaoTin++ © 2020~2023 的所有版权均由担子炮(dzp <danzipao@gmail.com>) �
 /////    字段内容的宽度，如果字段内容长度变化较大，可以设置一个固定宽度，以免晃动。
 /////    默认为 0，表示按照内容长度自动适配。
 /////
-///// 8. visibility 枚举值 {HideEmpty|HideCool|HideZero|HideLabel|Always}
+///// 8. visibility 枚举值 {HideEmpty|HideCool|HideZero|HideLabel|HideAll|Always}
 /////    含义如下：
 /////     * HideEmpty 如果字段内容为空则不予显示。
 /////     * HideCool  如果内容已陈旧则不予显示。请参考 cooldown 选项。
 /////     * HideZero  如果倒计时归零则不予显示。请参考 countdown 选项。
 /////     * HideLabel 仅显示字段内容，不显示字段标签。
+/////     * HideAll   什么也不显示，从面板上擦除该字段。
 /////     * Always    总是显示该字段的标签和内容。
 /////    所有的 Hide* 选项自动拥有 HideEmpty 语义。
 /////    默认为 HideEmpty。
@@ -158,6 +159,8 @@ VAR {命令输入提示符} prompt-prompt {Input};
         };
     };
 
+    prompt.layout;
+
     #local _ @prompt.ScreenWidth{};
     prompt.Set {};
     prompt.bindKey;
@@ -167,9 +170,90 @@ VAR {命令输入提示符} prompt-prompt {Input};
     #return true;
 };
 
+#nop 构造布局，主要是设置 order 字段。;
+#alias {prompt.layout} {
+    #local all-order {};
+    #foreach {*prompt-fields[]} {idx} {
+        #local field {$prompt-fields[$idx]};
+        #local place {$field[place]};
+        #local line  {$field[line]};
+        #local order {$field[order]};
+
+        #local last  @defaultNum{$all-order[$place/$line];0};
+
+        #if { "$order" != "" } {
+            #local order @defaultNum{$order;1};
+            #if { $last < $order } {
+                #local all-order[$place/$line] {$order};
+            };
+        };
+        #else {
+            math.Inc last;
+            #var prompt-fields[$idx][order] {$last};
+            #local all-order[$place/$line] {$last};
+        };
+    };
+};
+
 ///=== {
 ///// 下面是本模块的一些常用方法：
 /////
+// ## prompt.SetField <字段名称> <字段属性表格>
+//    重新设置指定的信息栏字段的属性，如果字段不存在，则添加一个新的字段。
+//    可供修改的属性请参考 HELP prompt。
+// };
+#alias {prompt.SetField} {
+    #local name     {%1};
+    #local attrib   {%2};
+
+    #if { "$name" == "" } {
+        xtt.Usage prompt.SetField;
+        #return;
+    };
+
+    #local attr {};
+    #foreach {*attrib[]} {attr} {
+        #if { "$attr" != "{place|line|order|label|name|color|width|visibility|cooldown|countdown}" } {
+            errLog 用法有误，不可识别的字段属性 $attr。;
+            #return;
+        };
+        #local value {$attrib[$attr]};
+        #if { "$attr" == "place" && "$value" != "{Top|TopSepBar|MidSepBar|Bot|BotSepBar}" } {
+            errLog 用法有误，字段属性 place 的值只能是 {Top|TopSepBar|MidSepBar|Bot|BotSepBar} 其中之一。;
+            #return;
+        };
+        #if { "$attr" == "visibility" && "$value" != "{HideEmpty|HideCool|HideZero|HideLabel|HideAll|Always}" } {
+            errLog 用法有误，字段属性 visibility 的值只能是 {HideEmpty|HideCool|HideZero|HideLabel|HideAll|Always} 其中之一。;
+            #return;
+        };
+        #if { "$attr" == "countdown" && "$value" != "{Auto|Clock|Seconds}" } {
+            errLog 用法有误，字段属性 countdown 的值只能是 {Auto|Clock|Seconds} 其中之一。;
+            #return;
+        };
+    };
+
+    #local idx {};
+    #foreach {*prompt-fields[]} {idx} {
+        #local field {$prompt-fields[$idx]};
+        #if { "$field[name]" == "$name" } {
+            #var prompt-fields[$idx] {$field $attrib};
+            #return;
+        };
+    };
+
+    #if { "$attrib[place]" == "" } {
+        errLog 用法有误，添加字段时，不能省略字段属性 place。;
+        #return;
+    };
+
+    #if { "$attrib[place]" == "{Top|Bot}" && "$attrib[line]" == "" } {
+        #local attrib[line] {1};
+    };
+
+    #list prompt-fields add {{{name}{$name} $attrib}};
+};
+
+///=== {
 // ## prompt.Set <表格>
 //    将表格中指定的字段和值，设置到 prompt 字典中。如果配置文件中存在该字段的配置，
 //    则会显示到屏幕上。
@@ -297,9 +381,20 @@ VAR {命令输入提示符} prompt-prompt {Input};
                 #local botSepBar[$field[order]] {$field};
             };
             #default {
-                #echo {配置有误，请检查。place=[%s]} {$field[place]};
+                #echo {字段 $field[name] 的配置有误，请检查。place=[%s]} {$field[place]};
             };
         };
+    };
+
+    #if { $topMaxLine > 0 || &topSepBar[] > 0 } {
+        #math topMaxLine {$topMaxLine + 1};
+    };
+
+    #if { $botMaxLine > 0 && &midSepBar[] > 0 } {
+        #math botMaxLine {$botMaxLine + 2};
+    };
+    #else {
+        #local botMaxLine {1};
     };
 
     #local allBarColor {};
@@ -314,17 +409,6 @@ VAR {命令输入提示符} prompt-prompt {Input};
     };
     #if { "$prompt-dict[disable][value]" != "" } {
         #local allBarColor {$prompt-theme[Disable]};
-    };
-
-    #if { &topSepBar[] > 0 } {
-        #math topMaxLine {$topMaxLine + 1};
-    };
-
-    #if { $botMaxLine == 0 && ( &midSepBar[] == 0 || &midSepBar[] == 0 ) } {
-        #local botMaxLine {1};
-    };
-    #else {
-        #math botMaxLine {$botMaxLine + 2};
     };
 
     #local content {};
@@ -346,10 +430,10 @@ VAR {命令输入提示符} prompt-prompt {Input};
         };
     };
 
-    #if { &topSepBar[] > 0 } {
+    #if { $topMaxLine > 0 } {
         #local text {@__prompt_build_line__{{$topSepBar}}};
         #if { $text[width] == 0 && $topMaxLine == 1 } {
-            #math topMaxLine {$topMaxLine - 1};
+            #math topMaxLine {0};
         };
         #else {
             #local barColor {$prompt-theme[TopSepBar]};
@@ -359,7 +443,7 @@ VAR {命令输入提示符} prompt-prompt {Input};
         };
     };
 
-    #if { &botSepBar[] > 0 || $botMaxLine > 0 } {
+    #if { $botMaxLine > 0 } {
         #local text {@__prompt_build_line__{{$botSepBar}}};
         #local barColor {$prompt-theme[BotSepBar]};
         #if { "$allBarColor" != "" } {#local barColor {$allBarColor}};
@@ -367,7 +451,6 @@ VAR {命令输入提示符} prompt-prompt {Input};
         #list content {add} {{{line}{-2}{text}{$text}}};
     };
 
-    #local delta {0};
     #local line {0};
     #if { &botLines[] > 0 } {
         #loop {&botLines[]} {1} {line} {
@@ -449,6 +532,11 @@ VAR {命令输入提示符} prompt-prompt {Input};
         #local value {$prompt-dict[$name]};
         #local now {};
         #format now {%T};
+
+        #nop 隐藏字段简单忽略就好。;
+        #if { "$field[visibility]" == "HideAll" } {
+            #continue;
+        };
 
         #nop 所有的 Hide* 选项自动拥有 HideEmpty 语义。;
         #if { "$field[visibility]" == "Hide%*" && "$value[value]" == "" } {
