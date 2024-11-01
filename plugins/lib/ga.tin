@@ -20,6 +20,7 @@ PaoTin++ © 2020~2023 的所有版权均由担子炮(dzp <danzipao@gmail.com>) �
 #func {lib_ga.Init} {
     #class data/lib/ga open;
     #list gXttPipeLine create {};
+    #var gXttLastCmd {};
     #class data/lib/ga close;
 
     ttevent.Handle {SENT OUTPUT}        {lib/ga} {lib/ga} {ga.send-output};
@@ -54,6 +55,7 @@ event.Define {GA} {有参} {$MODULE} {接收到 IAC GA 时发射本事件，参�
     #if { &gXttPipeLine[] > 0 } {
         #local cmd {$gXttPipeLine[1]};
         #list gXttPipeLine delete {1};
+        #var gXttLastCmd {$cmd};
     };
 
     event.Emit GA {} {$cmd};
@@ -138,6 +140,10 @@ event.Define {GA} {有参} {$MODULE} {接收到 IAC GA 时发射本事件，参�
 
 #func {ga.ThisCmd} {
     #return {$gXttPipeLine[1]};
+};
+
+#func {ga.LastCmd} {
+    #return {$gXttLastCmd};
 };
 
 #func {ga.IsUnderway} {
