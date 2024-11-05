@@ -1,0 +1,170 @@
+#nop vim: set filetype=tt:;
+
+///=== {
+// ## ask.About <NPC> <台词> <触发组别名>
+//    询问某人关于某事的消息，相当于执行 ask <NPC> about <台词>。
+//
+//    常规的 NPC 交互框架本别名已经帮你处理好了，包括各种异常处理，以及防止被其他玩家误触发的设计。
+//    通常你只会关心其中的某些回复，那你应当通过别名来订阅它们。
+//
+//    指定 NPC 共有三种格式，可以仅指定 ID，或者同时指定 ID 和名字：
+//      - 格式1: 砍柴人/kanchai ren
+//      - 格式2: 砍柴人(kanchai ren)
+//      - 格式3: kanchai ren
+//    以上皆可，其中 ID 部分不论大小写均可。
+//    通常建议你尽量指定名字，以防止误触发，但有些时候名字是动态的，则不必勉强指定。
+//
+//    用法举例，假设系统存在以下别名：
+//
+//    #alias {shouyin.answer} {
+//        #action {^砍柴人说道：「我已经把它送给陆大人了。」$} {
+//            okLog 手印已经送给陆大人;
+//        };
+//        #action {^砍柴人说道：「我们刚找到手印,还没来得及送给陆大人，你给我们代劳吧。」$} {
+//            put shouyin in bag;
+//            okLog 手印已经放入背包;
+//        };
+//        #action {^NPC%*，无法对话。$} {
+//            okLog 因为某种异常，无法对话。;
+//        };
+//    };
+//
+//    那么当你执行如下命令时：
+//
+//    ask.About {砍柴人/kanchai ren} {手印} {shouyin.answer};
+//
+//    将首先执行命令 ask kanchai ren about 手印，并且认为 kanchai ren 的名字叫做「砍柴人」。
+//    当砍柴人正常回复之后，将会调用别名 shouyin.answer 来注册你关心两条回复和一条异常触发。
+//    无论你如何处理它们，最后都会安全地删除那些触发，以防止稍后被其他玩家的信息误触发。
+//
+//    实际上，本别名有一种更自然的使用方式，可以平替 ask 命令。注意这里请不要加花括号：
+//
+//    Ask 砍柴人/kanchai ren about 手印 wait shouyin.answer;
+//
+//    另外还有两种特殊情况需要注意：
+//    第一，如果系统提示说话太快，那么本别名会自动延迟 N 秒后重试，随着重试次数的递增，间隔时间也会越来越长。
+//    第二，如果 NPC 因为各种异常，导致无法正常对话，那么本别名会根据情况，模拟一条信息，方便你做触发：
+//          - NPC不存在，无法对话。
+//          - NPC晕倒了，无法对话。
+//          - NPC听不懂，无法对话。
+//
+//    FIXME: 另外还有一些情况本别名暂时无法处理，需要持续完善。考虑到现有功能已经可以满足大部分需求，所以先这样了。
+//    第一，本别名不支持连续重复使用，即使是不同的 NPC，也不支持。因为那样的话，会导致触发混乱。
+//    第二，本别名在使用前，应自行移动到 NPC 所在房间，并且在使用期间，角色不应当移动，否则必然失败。
+// };
+
+#alias {Ask %* about %* wait %*} {ask.About {%1} {%2} {%3}};
+
+#alias {ask.About} {
+    #local npc      {%1};
+    #local words    {%2};
+    #local alias    {%3};
+    #local retry    {@default{%4;0}};
+
+    math.Inc retry;
+
+    #local name {};
+    #local id   {};
+
+    #switch {"$npc"} {
+        #match {"%*(%*)"}   {#var name {@str.Trim{&1}}; #var id {@str.ToLower{@str.Trim{&2}}}};
+        #match {"%*/%*"}    {#var name {@str.Trim{&1}}; #var id {@str.ToLower{@str.Trim{&2}}}};
+        #match {"%*"}       {#var name {};              #var id {@str.ToLower{@str.Trim{&1}}}};
+    };
+
+    #if { "$id" == "" || "$words" == "" || "$alias" == "" } {
+        xtt.Usage %90;
+        #return;
+    };
+
+    #local name {@default{$name;%*}};
+
+    #class ask.About open;
+
+    #line sub var #line oneshot #action {^你向$name打听有关『$words』的消息。$} {
+        #class ask.About open;
+
+        ga.ClassWait {#class ask.About kill};
+
+        $alias;
+
+        #action {^$name嘻嘻笑道：你说什么鸟语啊？$} {
+            ask.About.fail NPC听不懂，无法对话。;
+        };
+
+        #action {^$name说道：你在说外国话吧？我不会，你最好带个翻译来。$} {
+            ask.About.fail NPC听不懂，无法对话。;
+        };
+
+        #action {^$name说道：才阿八热古里古鲁。你看，我也能假装会说外国话。$} {
+            ask.About.fail NPC听不懂，无法对话。;
+        };
+
+        #action {^$name摇摇头，说道：没听说过。$} {
+            ask.About.fail NPC听不懂，无法对话。;
+        };
+
+        #action {^$name看着你，说道：我从没听说过这事。$} {
+            ask.About.fail NPC听不懂，无法对话。;
+        };
+
+        #action {^$name耸了耸肩，很抱歉地说：无可奉告。$} {
+            ask.About.fail NPC听不懂，无法对话。;
+        };
+
+        #action {^$name皱了皱眉头，说道：你去问别人吧。$} {
+            ask.About.fail NPC听不懂，无法对话。;
+        };
+
+        #action {^$name睁大眼睛望着你，显然不知道你在说什么。$} {
+            ask.About.fail NPC听不懂，无法对话。;
+        };
+
+        #action {^$name耸了耸肩，很抱歉地说：我对闲谈不感兴趣。$} {
+            ask.About.fail NPC听不懂，无法对话。;
+        };
+
+        #action {^$name不耐烦的瞪了你一眼，说道：没看我正忙着吗？$} {
+            ask.About.fail NPC听不懂，无法对话。;
+        };
+
+        #action {^$name说道：嗯....这我可不清楚，你最好问问别人吧。$} {
+            ask.About.fail NPC听不懂，无法对话。;
+        };
+
+        #action {^$name看了你一眼，说道：对不起。又接着忙自己的事去了。$} {
+            ask.About.fail NPC听不懂，无法对话。;
+        };
+
+        #action {^$name想了一会儿，说道：对不起，你问的事我实在没有印象。$} {
+            ask.About.fail NPC听不懂，无法对话。;
+        };
+
+        #class ask.About close;
+    };
+
+    #line sub var #action {^你说话太快，对方听不懂，慢点说吧。$} {
+        #class ask.About kill;
+        #delay ask.About.retry {ask.About {$npc} {$words} {$alias} {$retry}} 1;
+    };
+
+    #action {^这里没有这个人。$} {
+        ask.About.fail NPC不存在，无法对话。;
+    };
+
+    #action {^但是很显然的，$name现在的状况没有办法给你任何答复。$} {
+        ask.About.fail NPC晕倒了，无法对话。;
+    };
+
+    #line sub var #alias {ask.About.fail} {
+        #class ask.About open;
+        $alias;
+        #class ask.About close;
+        #showme <119>%%0<299>;
+        #class ask.About kill;
+    };
+
+    ask $id about $words;
+
+    #class ask.About close;
+};
