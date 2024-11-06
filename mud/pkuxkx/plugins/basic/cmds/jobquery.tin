@@ -201,13 +201,20 @@ VAR {任务CD状态查询结果} gJobState {};
             #case {"2;37;0"}    {#local moreInfo[buff] {正常}; #var env.Week[normal] {@sset.Add{{$env.Week[normal]};$name}}};
         };
 
+        #local cd   {%%9};
+        #local next {0};
+        #if { $cd >= 0 } {
+            #local next {@math.Eval{@time.Now{} + $cd}};
+        };
+
         #var gJobState[$name] {
             {ID}        {%%2}
             {类型}      {%%3}
             {名称}      {$name}
             {次数}      {$times}
             {成功率}    {$pct}
-            {CD}        {%%9}
+            {CD}        {$cd}
+            {NEXT}      {$next}
             {附加信息}  {%%10}
             {增益}      {$moreInfo[buff]}
             {增益联动}  {$moreInfo[group]}
