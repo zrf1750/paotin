@@ -169,7 +169,7 @@ VAR {任务CD状态查询结果} gJobState {};
     link.Enable jobquery 0 {藏经阁;大唐爵位任务};
 
     #nop 这里一共有 7 个占位符;
-    #local jobLeader {│[%d]%!s│[{门|新|主|特}]%!s│%S{|\((\d+)\)} {|([0-9.]+)%}%!s};
+    #local jobLeader {│[%d]%!s│[{门|新|主|特}]%!s│%S{?:(?:◆)*}{|\((\d+)\)} {|([0-9.]+)%}%!s};
     #local jobEnd {%!s│};
 
     #alias {jq.set} {
@@ -185,14 +185,20 @@ VAR {任务CD状态查询结果} gJobState {};
 
         #local color {\e\[[0-9;]+m};
 
-        #replace {rawLine} {^%*[主]%C│%+1c{(($color)+)▎$color|}%+0..2c$name%*$} {
-            {group}  {&5}
+        #replace {rawLine} {^%*[主]%C│%+1c{(($color)+)▎$color|}%+0..2c$name{(?:\e\[2;37;0m($color)+◆)*}%*} {
+            {group} {&5}
             {buff}  {&7}
+            {color} {&8}
         };
 
         #local moreInfo {$rawLine};
         #if { "$moreInfo[buff]"  != "" } {#local moreInfo[buff]  {@str.Color{$moreInfo[buff]}}};
         #if { "$moreInfo[group]" != "" } {#local moreInfo[group] {@str.Color{$moreInfo[group]}}};
+
+        #if { "$moreInfo[color]" != "" } {
+            #replace moreInfo[color] {\e[2;37;0m{(\e\[([0-9;]+)m)+}◆} {@str.Replace{{&3};{;};{-}};};
+            #replace moreInfo[color] {;$} {};
+        };
 
         #switch {"$moreInfo[buff]"} {
             #case {"42;1;1;37"} {#local moreInfo[buff] {最佳}; #var env.Week[best]   {@sset.Add{{$env.Week[best]};$name}}};
@@ -218,6 +224,7 @@ VAR {任务CD状态查询结果} gJobState {};
             {附加信息}  {%%10}
             {增益}      {$moreInfo[buff]}
             {增益联动}  {$moreInfo[group]}
+            {名号加成}  {$moreInfo[color]}
         };
 
         #if { "%1" == "gag" } {
