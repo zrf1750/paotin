@@ -2,6 +2,7 @@
 
 export LANG=en_US.UTF8
 export TERM=xterm-256color
+export EDITOR=nvim
 
 export LSCOLORS=Gxfxcxdxbxegedabagacad
 export LESS="-r -f --mouse"
@@ -17,3 +18,17 @@ alias ll='ls --color -lh'
 alias l='ls --color -lah'
 alias vim=nvim
 alias vi=nvim
+
+alias gst='git status'
+alias glc='tig --all'
+alias gco='git checkout'
+alias gcb='git checkout -b'
+alias grs='git restore'
+alias grss='git restore --source'
+alias grst='git restore --staged'
+alias gba='git branch -a'
+alias gbb='git bv'
+alias gdf='git -p diff'
+alias gdca='git diff --cached'
+alias gsh='git sh'
+alias grv='git remote -v'
