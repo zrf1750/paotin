@@ -5,6 +5,7 @@
 .gitconfig
 .config
 .vim_mru_files
+.ssh
 
 .bash_history
 .bash_profile
