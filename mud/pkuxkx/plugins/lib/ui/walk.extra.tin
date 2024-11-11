@@ -38,7 +38,7 @@ option.Define {GancheMode} {Bool} {是否开启运镖模式} {false};
         #class ui.walk.ganche.mode kill;
         errLog 运镖模式已关闭。;
         #if { @option.IsEnable{KeypadWalk} || @option.IsEnable{ScreenKeypad} } {
-            prompt.Set {{ganche}{@mslp.Exec{option.Toggle GancheMode;<119>已关闭<299>}（点击开启）}};
+            prompt.Set {{ganche}{@mslp.Exec{option.Toggle GancheMode;<119>已关闭<299>}}};
         };
         #else {
             prompt.Set {{ganche}{}};
@@ -55,7 +55,7 @@ option.Define {GancheMode} {Bool} {是否开启运镖模式} {false};
         };
         #class ui.walk.ganche.mode close;
         okLog 运镖模式已开启。;
-        prompt.Set {{ganche}{@mslp.Exec{option.Toggle GancheMode;<129>已开启<299>}（点击关闭）}};
+        prompt.Set {{ganche}{@mslp.Exec{option.Toggle GancheMode;<129>已开启<299>}}};
         #var ui.walk.cmd {gan che to};
     };
 };
