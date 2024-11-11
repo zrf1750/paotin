@@ -1,0 +1,77 @@
+set main-view-id = yes
+set git-colors = yes
+set mouse = yes
+set line-graphics = utf-8
+set show-untracked = yes
+set status-show-untracked-dirs = yes
+set status-show-untracked-files = yes
+set tab-size = 4
+set start-on-head = yes
+
+set main-view	= line-number:no,interval=5 id:true date:default,format="%Y-%m-%d" author:no commit-title:yes,graph,refs,overflow=no
+
+# set diff-highlight = delta
+
+color title-focus       white blue bold
+color title-blur        white 17
+color graph-commit      12      default
+color main-tag          magenta default
+color main-local-tag    11      default
+
+color cursor        green 235
+
+color date          12      default
+color diff-header	13      default
+color diff-index	12      default
+color diff-chunk	magenta	default
+color diff-stat     12      default
+
+bind generic R      :source ~/.tigrc
+bind generic q      view-close-no-quit
+
+bind main Q         view-close
+bind main o         maximize
+
+bind main g         move-first-line
+bind main G         move-last-line
+bind main 1         move-first-line
+bind main $         move-last-line
+bind main <Ctrl-g>  view-grep
+
+bind generic j      scroll-line-down
+bind generic k      scroll-line-up
+
+bind main    j      move-down
+bind main    k      move-up
+bind status  j      move-down
+bind status  k      move-up
+bind stage   j      move-down
+bind stage   k      move-up
+bind refs    j      move-down
+bind refs    k      move-up
+bind tree    j      move-down
+bind tree    k      move-up
+
+bind main I         :toggle author-display
+
+bind main <Ctrl-f>  move-page-down
+bind main <Ctrl-b>  move-page-up
+
+bind main <Space>       move-page-down
+bind main <Backspace>   move-page-up
+
+bind stage f        >bat -- %(file)
+bind stage F        >vim -- %(file)
+bind diff  F        >git show %(commit)
+
+bind status g       !git commit
+bind status G       !git commit --amend
+
+# bind generic o @sh -c "printf '%s' %(commit) | pbcopy"
+
+set blame-view = \
+	date:default \
+	author:abbreviated \
+	file-name:auto \
+	id:yes,color \
+	line-number:yes,interval=1 text
