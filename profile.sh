@@ -32,3 +32,5 @@ alias gdf='git -p diff'
 alias gdca='git diff --cached'
 alias gsh='git show'
 alias grv='git remote -v'
+
+command -v starship >/dev/null && eval "$(starship init bash)"
