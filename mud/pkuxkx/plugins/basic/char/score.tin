@@ -80,13 +80,19 @@ event.Define {char/saving}  {无参} {$MODULE} {银行存款数据更新};
 
     link.Enable score 5 {个人信息;门派履历;年龄;存款;死亡};
 
-    #line oneshot #action {~^%c│%c %* %c%+1..S%c(%+3..S)%c%s%c│%*│%c$} {
+    #line oneshot #action {~^%c│%c %* %c%+1..S%c(%+3..S){|\e\[1;32m √}%c%s%c│%*│%c$} {
         #local obj {@ParseTitle{@str.Trim{@str.Plain{%%3 %%5(%%7)}}}};
         #var char[档案][头衔] {$obj[title]};
         #var char[档案][大名] {$obj[name]};
         #var char[档案][账号] {$obj[id]};
         #var char[档案][彩色头衔] {%%3};
         #var char[档案][彩色大名] {%%4%%5%%6};
+        #if { "%%8" == "" } {
+            #var char[档案][唯一昵称] {false};
+        };
+        #else {
+            #var char[档案][唯一昵称] {true};
+        };
     };
 
     #var char-score-parser-lineNo {0};
