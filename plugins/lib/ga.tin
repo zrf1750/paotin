@@ -91,12 +91,13 @@ event.Define {GA} {有参} {$MODULE} {接收到 IAC GA 时发射本事件，参�
 };
 
 ///=== {
-// ## ga.Wait <回调代码> <钩子名称>
+// ## ga.Wait <回调代码> [<钩子名称>]
 //    等待下一个 GA 的到来，并在那时执行回调代码。
+//    可选的钩子名称可以用来忽略回调行为。
 // };
 #alias {ga.Wait} {
     #local code     {%21};
-    #local hook     {%2};
+    #local hook     {@default{{%2};@uuid{}}};
 
     #if { "$code" == "" || "$hook" == "" } {
         xtt.Usage ga.Wait;
@@ -109,7 +110,7 @@ event.Define {GA} {有参} {$MODULE} {接收到 IAC GA 时发射本事件，参�
 ///=== {
 // ## ga.ClassWait <回调代码> [<钩子名称>]
 //    类似于 ga.Wait，但是会在当前 #class 消亡时自动注销。
-//    因为可以自动注销，因此钩子名称可以省略。
+//    可选的钩子名称可以用来忽略回调行为。
 // };
 #alias {ga.ClassWait} {
     #local code     {%21};
