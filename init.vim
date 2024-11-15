@@ -19,6 +19,9 @@ set smarttab
 " 开启智能缩进
 set smartindent
 
+" 开启宽字符显示
+set ambiwidth=double
+
 " 智能缩进开启时，不让 # 删除自动缩进。
 inoremap # X#<LEFT><C-H><RIGHT>
 
@@ -75,3 +78,13 @@ autocmd BufEnter -RecentFiles- nnoremap <buffer><silent> M :q<CR>
 
 nmap <C-N> gt
 nmap <C-P> gT
+
+function! SwitchWindowOrTmuxPane()
+    if winnr('$') > 1
+        execute "normal! \<C-w>w"
+    else
+        silent !tmux select-pane -t :.+
+    endif
+endfunction
+
+nnoremap <silent> <Tab> :call SwitchWindowOrTmuxPane()<CR>
