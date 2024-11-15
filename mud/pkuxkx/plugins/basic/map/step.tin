@@ -498,9 +498,17 @@ VAR {清除门卫命令，默认为 attack}					map.step.crush.cmd	{attack};
     #action {^小路宽度不足以容纳两人并肩行走，你需要小心翼翼地前行。$}          {map.step.Try.retry};
     #nop 铜官镇的小道;
     #action {^你忽然不辨方向，不知道该往哪里走了。$}                            {map.step.Try.retry};
-
+    #nop 上饶的山路;
+    #action {^你没看清路就乱走，结果转了一圈又回到原地。$}                      {map.step.Try.retry};
+    #nop 绍兴府的鉴湖;
+    #action {^牛三调笑道：「别走那么快啊」$}                                    {map.step.Try.retry};
     #nop 凌霄城的城门;
     #action {^吊桥还没有升起来，你就这样走了，可能会给外敌可乘之机的。$}        {map.step.Try.retry};
+
+    #nop 凉州的金塔寺;
+    #action {^走在石阶上，你看着身边的悬崖，稍有不慎就是粉身碎骨的下场，不由得靠里侧身，放缓脚步。$} {
+        map.step.Try.retry;
+    };
 
     #nop 襄阳的蒙古营门;
     #action {^守将大声喝到:干什么的?(answer)$}                     {answer 送信; map.step.Try.retry};
