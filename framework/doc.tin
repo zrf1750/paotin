@@ -38,32 +38,55 @@ PaoTin++ © 2020~2023 的所有版权均由担子炮(dzp <danzipao@gmail.com>) �
 //    规范的脚本文件加载方法。类似于 #read 指令，但支持文件重定位。
 //    具体来说，假设文件名是 foo/bar.tin，则本命令会从以下位置按照从上到下的顺序进行查找：
 //
-//      - 1. 玩家自定义位置: var/foo/bar.tin
-//      - 2. MUD定制版位置:  mud/\$MUD/foo/bar.tin
-//      - 3. 默认脚本位置:   foo/bar.tin
+//      - 1. 玩家为某个MUD自定义的特别定制版位置:   var/mud/\$MUD/foo/bar.tin
+//      - 2. 一般玩家的自定义位置:                  var/foo/bar.tin
+//      - 3. MUD定制版位置:                         mud/\$MUD/foo/bar.tin
+//      - 4. 默认脚本位置:                          foo/bar.tin
 //
 //    如果前面的某个位置找到了相应的文件，则不再继续查找。
 //    其中 \$MUD 代表当前选择的游戏服务器，可通过 #var gCurrentMUDLIB 查看。
 //
-//    这意味着，PaoTin++ 框架下所有的文件 TinTin++ 脚本，都支持重载机制，也就是说允许
+//    因为 load-file 是 PaoTin++ 中非常基础的加载文件方式，所以它的重定位机制是全局的。
+//    这意味着，PaoTin++ 框架下所有的 TinTin++ 脚本文件，都支持重载机制，也就是说允许
 //    用户修改。但是要注意，用户必须在修改之前，将其拷贝一份副本，放置在 var 目录下，
-//    这样就会被优先加载。而且也只有这样修改才不会影响 Git 仓库。
+//    这样就会被优先加载。而且也只有这样修改才不会影响原本的 PaoTin++ 文件，这样当你升级
+//    版本时，就不会因为原始文件被替换，而丢失你的修改。
 //
 //    另外，除了文件的覆盖式重载机制之外，PaoTin++ 还提供了一种文件的继承式修改机制。
 //    即：对于 foo/bar.tin 来说，不论最终加载的是前述哪个路径，加载之后，如果发现存在
-//    mud/\$MUD/foo/bar.extra.tin，或者 var/foo/bar.extra.tin，则它们将会在 foo/bar.tin
-//    加载后，进行补充式加载。最终加载结果类似于将上述文件的内容合并在一起之后加载。
+//    以下文件，则会继续按顺序进行补充式加载：
+//
+//      - 1. MUD定制版位置:                         mud/\$MUD/foo/bar.extra.tin
+//      - 2. 一般玩家的自定义位置:                  var/foo/bar.extra.tin
+//      - 3. 玩家为某个MUD自定义的特别定制版位置:   var/mud/\$MUD/foo/bar.extra.tin
+//
+//    和前面所述重定位方式不同，补充式加载不会中途停止，而是会按上面顺序全部检查一遍路径。
+//    最终加载结果类似于将上述文件的内容合并在一起之后的效果。
+//
+//    因为补充式加载不会取代原本的文件内容，只是在其基础上进行补充，所以如果原文件内容较多，
+//    但用户只是想要修改其中一小部分，那么可以把那一部分单独拿出来，放置在 .extra.tin 文件
+//    中进行定制，而不必拷贝整个文件。这样仍然可以享受原文件升级带来的好处。这个行为看上去
+//    就很像面向对象编程中的继承机制，所以也可以称为继承式修改。
+//
+//    通常有两类文件你可能需要用到这种继承式修改机制，一类是模块文件，一类是配置文件。对于
+//    模块文件，建议以别名或者触发为单位。而对于配置文件，则以变量为单位。不过有的变量可能
+//    会很大，这时候你不必复制整个变量，而是可以用变量修改语法，只修改你需要的部分。总之就
+//    一个原则：你修改的颗粒度越小，你对其余部分的影响就越少，就越容易享受升级带来的好处。
 //
 // ## load-config <配置文件名>
 //    规范的配置加载方法。假设配置文件名是 foo/bar，则本命令相当于 load-file etc/foo/bar.tin，
 //    也就是说，配置文件 foo/bar 对应的实际物理文件可能是：
 //
-//      - 1. 玩家自定义位置: var/etc/foo/bar.tin
-//      - 2. MUD定制版位置:  mud/\$MUD/etc/foo/bar.tin
-//      - 3. 默认脚本位置:   etc/foo/bar.tin
+//      - 1. 玩家为某个MUD自定义的特别定制版位置:   var/mud/\$MUD/etc/foo/bar.tin
+//      - 2. 一般玩家的自定义位置:                  var/etc/foo/bar.tin
+//      - 3. MUD定制版位置:                         mud/\$MUD/etc/foo/bar.tin
+//      - 4. 默认脚本位置:                          etc/foo/bar.tin
 //
 //    如果前面的某个位置找到了相应的文件，则不再继续查找。
 //    其中 \$MUD 代表当前选择的游戏服务器，可通过 #var gCurrentMUDLIB 查看。
+//
+//    了解以上机制，有助于帮助你书写自己的新配置文件。但如果你是想要修改已有模块，那么建议
+//    使用另一种被称为继承式加载的方法，参见 HELP load-file。
 //
 // ## VAR <变量中文含义> <变量名> <值>
 //    声明并初始化变量。和 #var 不同，如果该变量已存在，则不会修改它的值。
@@ -275,15 +298,16 @@ PaoTin++ © 2020~2023 的所有版权均由担子炮(dzp <danzipao@gmail.com>) �
 //     6. 文件和目录命名规范
 //
 //        一个 PaoTin++ 模块在磁盘上可以对应一个文件，或者对应一个目录。为了便于用户扩展，PaoTin++ 框架
-//        提供了三个不同的位置来加载模块，它们分别是：
+//        提供了四个不同的位置来加载模块，它们分别是：
 //
-//        - 默认位置:         \$PaoTinRoot/plugins/              优先级最低，由 PaoTin++ 维护
-//        - MUD定制版位置:    \$PaoTinRoot/mud/\$MUD/plugins/     优先级居中，由 PaoTin++ 维护
-//        - 玩家自定义位置:   \$PaoTinRoot/var/plugins/          优先级最高，由用户自行维护
+//        - 默认位置:           \$PaoTinRoot/plugins/                   优先级最低，由 PaoTin++ 维护
+//        - MUD定制版位置:      \$PaoTinRoot/mud/\$MUD/plugins/         优先级居中，由 PaoTin++ 维护
+//        - 玩家自定义位置:     \$PaoTinRoot/var/plugins/               优先级较高，由用户自行维护
+//        - 玩家特别自定义位置: \$PaoTinRoot/var/mud/\$MUD/plugins/     优先级最高，由用户自行维护
 //
 //        其中 \$PaoTinRoot 代表 PaoTin++ 的安装目录，\$MUD 代表 MUDLIB 的类型 ID。
 //        PaoTin++ 的模块应当存放在以上位置其中之一。模块全限定名的各个部分就相当于一个多级目录结构，
-//        这样所有的 PaoTin++ 模块就会形成三棵目录树，并在加载后从逻辑上来说位于同一个树状名字空间当中。
+//        这样所有的 PaoTin++ 模块就会形成四棵目录树，并在加载后从逻辑上来说位于同一个树状名字空间当中。
 //
 //        文件和目录都应当采用羊肉串风格命名，并且模块的全限定名和它在磁盘上的位置存在某种对应关系，
 //        具体参见 HELP load-module。
@@ -303,18 +327,24 @@ PaoTin++ © 2020~2023 的所有版权均由担子炮(dzp <danzipao@gmail.com>) �
 //
 //    也就是说，模块 foo/bar 对应的实际物理文件可能是：
 //
-//      - 1. 玩家自定义位置: var/plugins/foo/bar.tin
-//      - 2. MUD定制版位置:  mud/\$MUD/plugins/foo/bar.tin
-//      - 3. 默认脚本位置:   plugins/foo/bar.tin
-//      - 4. 玩家自定义位置: var/plugins/foo/bar/__init__.tin
-//      - 5. MUD定制版位置:  mud/\$MUD/plugins/foo/bar/__init__.tin
-//      - 6. 默认脚本位置:   plugins/foo/bar/__init__.tin
-//      - 7. 玩家自定义位置: var/plugins/foo/bar/__main__.tin
-//      - 8. MUD定制版位置:  mud/\$MUD/plugins/foo/bar/__main__.tin
-//      - 9. 默认脚本位置:   plugins/foo/bar/__main__.tin
+//      - 1. 玩家为某个MUD自定义的特别定制版位置:   var/mud/\$MUD/plugins/foo/bar.tin
+//      - 2. 一般玩家的自定义位置:                  var/plugins/foo/bar.tin
+//      - 3. MUD定制版位置:                         mud/\$MUD/plugins/foo/bar.tin
+//      - 4. 默认脚本位置:                          plugins/foo/bar.tin
+//      - 5. 玩家为某个MUD自定义的特别定制版位置:   var/mud/\$MUD/plugins/foo/bar/__init__.tin
+//      - 6. 一般玩家的自定义位置:                  var/plugins/foo/bar/__init__.tin
+//      - 7. MUD定制版位置:                         mud/\$MUD/plugins/foo/bar/__init__.tin
+//      - 8. 默认脚本位置:                          plugins/foo/bar/__init__.tin
+//      - 9. 玩家为某个MUD自定义的特别定制版位置:   var/mud/\$MUD/plugins/foo/bar/__main__.tin
+//      - 10. 一般玩家的自定义位置:                 var/plugins/foo/bar/__main__.tin
+//      - 11. MUD定制版位置:                        mud/\$MUD/plugins/foo/bar/__main__.tin
+//      - 12. 默认脚本位置:                         plugins/foo/bar/__main__.tin
 //
 //    如果前面的某个位置找到了相应的文件，则不再继续查找。
 //    其中 \$MUD 代表当前选择的游戏服务器，可通过 #var gCurrentMUDLIB 查看。
+//
+//    了解以上机制，有助于帮助你书写自己的新模块。但如果你是想要修改已有模块，那么建议使用
+//    另一种被称为继承式加载的方法，参见 HELP load-file。
 //
 ///// 日志系统
 /////

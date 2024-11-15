@@ -350,7 +350,7 @@ PaoTin++ © 2020~2023 的所有版权均由担子炮(dzp <danzipao@gmail.com>) �
 
     #alias {xtt.doc.add.keyword-doc} {
         #local doc {%%1};
-        #regex {$doc} {={([ ]{3,})- (\d\.\s*)?(\S+?)(: |：)| }%*} {
+        #regex {$doc} {={([ ]{3,})- (\d+\.\s*)?(\S+?)(: |：)| }%*} {
             #local text {};
             #if { "&1" != " " } {
                 #local text {<299>&2- <168>&3&4<278>&5&6};
