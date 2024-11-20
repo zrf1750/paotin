@@ -527,6 +527,8 @@ VAR {清除门卫命令，默认为 attack}					map.step.crush.cmd	{attack};
     #action {^女管家挡住了你。$}                                       {map.step.Try.crush {guan jia}};
     #nop 扬州的财主后院，不吃神行千里，杀人可进;
     #action {^崔员外挡住了你。$}                                    {map.step.Try.crush {cui yuanwai}};
+    #nop 仙霞岭的山路;
+    #action {^卢道之说道：「我就看不惯长这么好看的男人！」$}          {map.step.Try.crush {lu daozhi}};
 
     #nop 扬州的衙门大门;
     #action {^衙役喝道：「威……武……」$}                                {map.step.Try.crush {ya yi}};
