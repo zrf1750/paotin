@@ -133,12 +133,14 @@ VAR {锦囊当前已经存储的宝石数量} {char.sachet.Amount}   {0};
         };
     };
 
+    #var char.sachet.bak {$char[锦囊]};
     #list char[锦囊] create {};
 
     #line oneshot #action {^{人偶|布袋|钵盂|锦囊}(%*) [%*/%*]{|ID=char.sachet}$} {
         #var char.sachet.Amount {%%3};
         #var char.sachet.Max    {%%4};
         char.sachet.parse.output;
+        ga.Wait {sachet.find.bug};
     };
 
     xtt.Send {jiancha $id};
@@ -320,4 +322,38 @@ VAR {锦囊最近一次操作的宝石名称} {char.sachet.Gem} {};
 
 #action {^从$NPC身上掉了出来一颗$GEM$E} {
     pack @gem.NameToID{%2};
+};
+
+#alias {sachet.find.bug} {
+    #if { &char.sachet.bak[] == 0 } {
+        #return;
+    };
+
+    #local found {0};
+    #local code {};
+    #foreach {*char[锦囊][]} {code} {
+        #if { "$char[锦囊][$code][数量]" != "$char.sachet.bak[$code][数量]" } {
+            #local found {1};
+            #local level {$char[锦囊][$code][等级]};
+            #local yiny  {$char[锦囊][$code][阴阳]};
+            #local kind  {$char[锦囊][$code][种类]};
+            #local count {$char.sachet.bak[$code][数量]};
+            #local real  {$char[锦囊][$code][数量]};
+            errLog 发现 BUG：PaoTin++ 维护的锦囊数据中，$level$yiny$kind的数量为$count，实际应为$real。;
+        };
+        #unvar char.sachet.bak[$code];
+    };
+
+    #if { &char.sachet.bak[] != 0 } {
+        #local found {1};
+        errLog 发现 BUG：PaoTin++ 维护的锦囊数据中，以下内容与实际锦囊情况不符：;
+        #var char.sachet.bak;
+    };
+
+    #if { $found } {
+        errLog 看来锦囊管理模块还需要持续完善呀。;
+    };
+    #else {
+        okLog 锦囊数据核对无误。锦囊管理模块非常完美！;
+    };
 };
