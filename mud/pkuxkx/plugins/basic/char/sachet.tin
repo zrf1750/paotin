@@ -334,12 +334,9 @@ VAR {锦囊最近一次操作的宝石名称} {char.sachet.Gem} {};
     #foreach {*char[锦囊][]} {code} {
         #if { "$char[锦囊][$code][数量]" != "$char.sachet.bak[$code][数量]" } {
             #local found {1};
-            #local level {$char[锦囊][$code][等级]};
-            #local yiny  {$char[锦囊][$code][阴阳]};
-            #local kind  {$char[锦囊][$code][种类]};
             #local count {$char.sachet.bak[$code][数量]};
             #local real  {$char[锦囊][$code][数量]};
-            errLog 发现 BUG：PaoTin++ 维护的锦囊数据中，$level$yiny$kind的数量为$count，实际应为$real。;
+            errLog 发现 BUG：PaoTin++ 维护的锦囊数据中，@gem.CodeToNameB{$code}的数量为@defaultNum{$count;0}，实际应为$real。;
         };
         #unvar char.sachet.bak[$code];
     };
