@@ -281,8 +281,14 @@ VAR {锦囊最近一次操作的宝石名称} {char.sachet.Gem} {};
     #local gem {%2};
     #var char.sachet.Gem {$gem};
 
+    #if { $char.sachet.Max == 10 } {
+        jiancha gem;
+        #return;
+    };
+
     #local code {@gem.NameToCode{$gem}};
 
+    math.Inc char.sachet.Amount -1;
     math.Inc char[锦囊][$code][数量] -1;
     #if { $char[锦囊][$code][数量] <= 0 } {
         #unvar char[锦囊][$code];
@@ -294,6 +300,11 @@ VAR {锦囊最近一次操作的宝石名称} {char.sachet.Gem} {};
 #action {^你将手中$GEM放进了{锦囊|钵盂|布袋|人偶}。$E} {
     #local gem {%1};
     #var char.sachet.Gem {$gem};
+
+    #if { $char.sachet.Max == 10 } {
+        jiancha gem;
+        #return;
+    };
 
     #local code {@gem.NameToCode{$gem}};
 
@@ -315,6 +326,7 @@ VAR {锦囊最近一次操作的宝石名称} {char.sachet.Gem} {};
         };
     };
 
+    math.Inc char.sachet.Amount;
     math.Inc char[锦囊][$code][数量];
 
     event.Emit char/sachet/add;
