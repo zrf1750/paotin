@@ -75,6 +75,10 @@ event.Define {char/sachet/remove}   {无参}  {$MODULE} {从宝石袋中取出�
         #local code {$gem.name2code[$name]};
         #var gem.code2name[$code] {$name};
     };
+
+    load-config gem;
+
+    #return {true};
 };
 
 #var char[锦囊] {};
@@ -212,7 +216,7 @@ VAR {锦囊当前已经存储的宝石数量} {char.sachet.Amount}   {0};
     #local gem {$gem};
 
     #if { &gem[] == 0 } {
-        #return;
+        #return {};
     };
 
     #return {$gem.name2code[$gem[种类]]$gem.name2code[$gem[等级]]@str.ToUpper{$gem.name2code[$gem[阴阳]]}};
@@ -234,7 +238,7 @@ VAR {锦囊当前已经存储的宝石数量} {char.sachet.Amount}   {0};
     #local gem {$gem};
 
     #if { &gem[] == 0 } {
-        #return;
+        #return {};
     };
 
     #return {$gem.name2id[$gem[等级]] $gem.name2id[$gem[种类]]};
@@ -256,7 +260,7 @@ VAR {锦囊当前已经存储的宝石数量} {char.sachet.Amount}   {0};
     #local gem {$gem};
 
     #if { &gem[] == 0 } {
-        #return;
+        #return {};
     };
 
     #return {$gem.code2name[$gem[等级]]$gem.code2name[@str.ToLower{$gem[阴阳]}]$gem.code2name[$gem[种类]]};
@@ -325,7 +329,7 @@ VAR {锦囊最近一次操作的宝石名称} {char.sachet.Gem} {};
 };
 
 #alias {sachet.find.bug} {
-    #if { &char.sachet.bak[] == 0 } {
+    #if { &char.sachet.bak[] == 0 || $char.sachet.Max == 10 } {
         #return;
     };
 
@@ -352,5 +356,134 @@ VAR {锦囊最近一次操作的宝石名称} {char.sachet.Gem} {};
     };
     #else {
         okLog 锦囊数据核对无误。锦囊管理模块非常完美！;
+    };
+};
+
+VAR {宝石金店价格表}    {gem.Price}         {};
+VAR {宝石价格系数}      {gem.PriceScale}    {};
+
+///=== {
+// #@ gem.Value [ <中文名称> | <锦囊序号> ]
+//    对宝石进行估值。如果省略参数，则估算整个锦囊中的所有宝石的价值总和。
+//    参数可以是宝石的中文名称或锦囊序号。如天★木灵、M8B、m8b 都是可以的。
+//    估值结果受宝石金店价格表和宝石价格系数的影响，此二者玩家皆可自定义配置。
+// };
+#func {gem.Value} {
+    #local gem {%1};
+
+    #if { "$gem" == "" } {
+        #return @gem.ValueAll{};
+    };
+
+    #if { "$gem" == "%+3w" } {
+        #local gem {@gem.CodeToName{$gem}};
+    };
+
+    #replace gem {$GEMLVL$GEMGEN{?: |}$GEMKIND} {
+        {等级}{&1}
+        {阴阳}{&2}
+        {种类}{&3}
+    };
+
+    #local gem {$gem};
+
+    #if { &gem[] == 0 } {
+        #return 0;
+    };
+
+    #local value {$gem.Price[$gem[等级]]};
+    #local scale {$gem.PriceScale[$gem[种类]]};
+    #math value {$value * $scale};
+    #if { "$gem[阴阳]/$gem[种类]" == "◎/{神龙骨|凤凰羽|麒麟角|玄武甲}" } {
+        #math value {$value * 2};
+    };
+
+    #return {$value};
+};
+
+///=== {
+// #@ gem.ValueAll
+//    估算整个锦囊中的所有宝石的价值总和。
+// };
+#func {gem.ValueAll} {
+    #local where {@str.Trim{%0}};
+
+    #local sum {0};
+
+    #if { "$where" == "" } {
+        #local code {};
+        #foreach {*char[锦囊][]} {code} {
+            #local value    {@gem.Value{$code}};
+            #local amount   {$char[锦囊][$code][数量]};
+            #math sum {$sum + $value * $amount};
+        };
+        #return $sum;
+    };
+
+    #local bag {};
+    #if { "$where" == "bag %d" } {
+        #replace where {^bag } {};
+        #local bag {$char.Bag[$where]};
+    };
+    #elseif { "$where" == "backpack" } {
+        #local bag {$char.Gem};
+    };
+
+    #local key {};
+    #foreach {*bag[]} {key} {
+        #local name     {$bag[$key][name]};
+        #local amount   {$bag[$key][amount]};
+        #local value {@gem.Value{$name}};
+        #math sum {$sum + $value * $amount};
+    };
+
+    #return {$sum};
+};
+
+///=== {
+// ## gem.SafelyPack <宝石中文名称或锦囊序号>
+//    将宝石放入宝石袋。
+//    如果宝石囊已满，则会自动取出价值最低的宝石，好腾出空间放入新宝石。
+//    参数可以是宝石的中文名称或锦囊序号。如天★木灵、M8B、m8b 都是可以的。
+//    宝石价值按照宝石金店价格表和宝石价格系数计算。
+// };
+#alias {gem.SafelyPack} {
+    #local gem {%1};
+
+    #if { "$gem" == "%+3w" } {
+        #local gem {@gem.CodeToName{$gem}};
+    };
+
+    #local gem {@gem.NameToID{$gem}};
+    #if { "$gem" == "" } {
+        xtt.Usage %90;
+        #return;
+    };
+
+    #if { "$gem" == "" } {
+        xtt.Usage %90;
+        #return;
+    };
+
+    #if { $char.sachet.Amount < $char.sachet.Max } {
+        pack $gem;
+        #return;
+    };
+
+    #local minValue {999999};
+    #local minCode  {};
+
+    #local code     {};
+    #foreach {*char[锦囊][]} {code} {
+        #local value {@gem.Value{$code}};
+        #if { $value < $minValue } {
+            #local minValue {$value};
+            #local minCode  {@str.ToLower{$code}};
+        };
+    };
+
+    #if { "$minCode" != "" } {
+        pickgem $minCode;
+        pack $gem;
     };
 };

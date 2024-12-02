@@ -103,7 +103,7 @@ event.Define {char/bag}         {无参} {$MODULE} {look bag 命令运行完毕�
         #local type {Bag[$char.backpack.currentBag]};
     };
 
-    #if { "$type" != "{Item|Cash|Wear|Wield|Equip|Bag\[\d+\]}" } {
+    #if { "$type" != "{Item|Cash|Wear|Wield|Equip|Gem|Bag\[\d+\]}" } {
         #return;
     };
 
@@ -233,6 +233,10 @@ event.Define {char/bag}         {无参} {$MODULE} {look bag 命令运行完毕�
     #action {^{?:(${汉字数词})(${汉字量词})|}%S %S(%*)$} {
         char.backpack.set {Equip} {%%1} {%%2} {%%3 %%4} {%%5};
     } {4.3};
+
+    #action {^{?:(?:(${汉字数词})颗)?}$GEM(%*)$} {
+        char.backpack.set {Gem} {%%1} {颗} {%%2} {%%3};
+    } {4.2};
 
     #nop 其它物品;
     #action {^{?:(${汉字数词})(${汉字量词})|}%S(%*)$} {
@@ -375,28 +379,42 @@ event.Define {char/bag}         {无参} {$MODULE} {look bag 命令运行完毕�
 //    查询角色是否携带有某样物品。如果有，则返回 ID 和名称；否则返回空串。
 //    查询范围：
 //      Item:       所有物品（但不包括包袱里的内容）
+//      Cash:       现金
 //      Wear:       穿戴
 //      Wield:      手持的装备（武器或盾牌）
 //      Equip:      携带的装备
+//      Gem:        背包里的宝石
 //      Autoload:   Autoload 的装备
 //      ItemID:     id 命令看到的数据
-//      Bag:        包袱里的物品
+//      BagN:       包袱里的物品，其中 N 表示是包袱的序号，省略表示 Bag1
 // };
 #func {char.backpack.Query} {
     #local range    {%1};
     #local key      {%2};
     #local func     {@default{%3;char.backpack.Query}};
 
-    #if { "$range" != "{Item|Cash|Wear|Wield|Equip|Autoload|ItemID}" } {
+    #if { "$range" != "{Item|Cash|Wear|Wield|Equip|Gem|Autoload|ItemID|Bag\s*\d+}" } {
         xtt.Usage $func;
         #return;
     };
 
+    #local container {};
+
+    #if { "$range" == "Bag%s%d" } {
+        #local container {$range};
+        #replace container {^Bag%s%d$} {&2};
+        #local container {@defaultNum{$container;1}};
+        #local container {$char.Bag[$container]};
+    };
+    #else {
+        #local container {${char.$range}};
+    };
+
     #local items {};
     #local var {};
-    #local items {@table.Keys{char.$range;{$key/%*}}};
+    #local items {@table.Keys{container;{$key/%*}}};
     #if { "$items" == "" } {
-        #local items {@table.Keys{char.$range;{%*/$key}}};
+        #local items {@table.Keys{container;{%*/$key}}};
     };
 
     #return {$items};
@@ -427,7 +445,19 @@ event.Define {char/bag}         {无参} {$MODULE} {look bag 命令运行完毕�
     #local range    {%1};
     #local key      {%2};
 
-    #local info {${char.${range}[$key]}};
+    #local container {};
+
+    #if { "$range" == "Bag%s%d" } {
+        #local container {$range};
+        #replace container {^Bag%s%d$} {&2};
+        #local container {@defaultNum{$container;1}};
+        #local container {$char.Bag[$container]};
+    };
+    #else {
+        #local container {${char.$range}};
+    };
+
+    #local info {$container[$key]};
     #if { "$info" == "" } {
         #local items {@char.backpack.Query{{$range};{$key}}};
 
@@ -441,7 +471,7 @@ event.Define {char/bag}         {无参} {$MODULE} {look bag 命令运行完毕�
             #return -1;
         };
 
-        #local info {${char.${range}[$items]}};
+        #return @char.backpack.Amount{$range;$items};
     };
 
     #return {@defaultNum{$info[amount];1}};
