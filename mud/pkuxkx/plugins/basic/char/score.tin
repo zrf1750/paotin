@@ -71,12 +71,13 @@ event.Define {char/saving}  {无参} {$MODULE} {银行存款数据更新};
     {青城派}    {qcp}
 };
 
-#action {^╭───人物详情────────────────────────┬───────╮$} {
+#action {@re.TableHeader{人物详情}} {
     #class char-score-parser open;
 
     #var char[档案][高级任务] {-1};
     #var char[档案][低级任务] {-1};
     #var char[档案][劫匪掉宝] {-1};
+    #var char[档案][休闲玩家] {false};
 
     link.Enable score 5 {个人信息;门派履历;年龄;存款;死亡};
 
@@ -169,6 +170,10 @@ event.Define {char/saving}  {无参} {$MODULE} {银行存款数据更新};
         #var char[档案][%%3] {@str.Trim{%%4}};
     } {5.03};
 
+    #action {^├─{(─)*}─休闲任务──{(─|┼)*}──┤$} {
+        #var char[档案][休闲玩家] {true};
+    };
+
 #nop │杀生：0人               │职业：甲士              │存款：527金条 21713黄金   │;
 #nop │被杀：4次               │道德：100.12万          │门派例钱：无              │;
 #nop │死亡：4次               │声望：322.77万          │国家积分：0               │;
@@ -179,9 +184,14 @@ event.Define {char/saving}  {无参} {$MODULE} {银行存款数据更新};
         #var char[档案][%%1] {@str.Trim{%%2}};
         #var char[档案][%%3] {@str.Trim{%%4}};
         #if { "%%5" == "存款"} {
-            #regex {@str.Trim{%%6}} {{(\d+)金条 |}%d黄金} {
-                #var char[档案][存款][金条] {&2};
-                #var char[档案][存款][黄金] {&3};
+            #regex {@str.Trim{%%6}} {{(\d+)金条 |}{[0-9万+]+}黄金} {
+                #var char[档案][存款][金条] {@defaultNum{&2;0}};
+                #local gold {&3};
+                #if { "$gold" == "%*万+" } {
+                    #replace gold {万+} {};
+                    #math gold {$gold * 10000};
+                };
+                #var char[档案][存款][黄金] {$gold};
             };
         };
         #elseif { "%%5" == "门派例钱" } {
@@ -192,7 +202,7 @@ event.Define {char/saving}  {无参} {$MODULE} {银行存款数据更新};
         };
     };
 
-    #action {^╰────────────┴────────────┴────%S────╯{|ID=char.score}$} {
+    #action {@re.TableTail{|ID=char.score}} {
         #class char-score-parser kill;
 
         #if { "$char[档案][门派]" == "%S [丹心]" } {
