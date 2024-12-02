@@ -451,7 +451,7 @@ VAR {宝石价格系数}      {gem.PriceScale}    {};
     #local gem {%1};
 
     #if { "$gem" == "%+3w" } {
-        #local gem {@gem.CodeToName{$gem}};
+        #local gem {@gem.CodeToName{@str.ToUpper{$gem}}};
     };
 
     #local gem {@gem.NameToID{$gem}};
