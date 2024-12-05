@@ -501,10 +501,13 @@ VAR {用 VAR 关键字定义的 PaoTin++ 变量清单，包含其中文含义} g
 //          启动一个打坐机器，机器名为 dazuo，即第一条命令 dazuo max 的命令部分；
 //      xtt.DoBusyDo {yun regenerate; tuna max; tuna 10} tuna;
 //          启动一个吐纳机器，机器名为 tuna，即第二个参数。
+//
+//    本别名也可以简写成 DBD。
 // };
 #alias {xtt.DoBusyDo} {
     #local cmds {%1};
     #local bot  {%2};
+    #local yun  {@default{%3;true}};
 
     #if { "$cmds" == "" } {
         xtt.Usage %90;
@@ -516,18 +519,30 @@ VAR {用 VAR 关键字定义的 PaoTin++ 变量清单，包含其中文含义} g
         #replace bot {^%S{| .*}$} {&1};
     };
 
+    #var bot.DoBusyDo.${bot}.lastRun {0};
+
     #line sub var #alias {bot.DoBusyDo.$bot} {
         #if { @char.IsBusy{} } {
             #delay {bot.DoBusyDo.$bot} {bot.DoBusyDo.$bot} 1;
             #return;
         };
 
-        #if { $$char[HP][气血百分比] < 30 } {
-            yun recover;
+        #local now {@time.Now{}};
+        #if { $${bot.DoBusyDo.${bot}.lastRun} > 0 && $$now <= $${bot.DoBusyDo.${bot}.lastRun} } {
+            #delay {bot.DoBusyDo.$bot} {bot.DoBusyDo.$bot} 3;
+            #return;
+        };
+        #else {
+            #var bot.DoBusyDo.${bot}.lastRun {@time.Now{}};
         };
 
-        #if { $$char[HP][精神百分比] < 30 } {
-            yun regenerate;
+        #if { @isTrue{$yun} } {
+            #if { $$char[HP][气血百分比] < 30 } {
+                yun recover;
+            };
+            #if { $$char[HP][精神百分比] < 30 } {
+                yun regenerate;
+            };
         };
 
         #if { "$$char[HP][饥饿]" != "{正常|很饱}" } {
@@ -546,6 +561,29 @@ VAR {用 VAR 关键字定义的 PaoTin++ 变量清单，包含其中文含义} g
 
     okLog 机器 $bot 已启动，你可以用 xtt.DoBusyDo.Stop $bot 来停止它。;
 };
+
+///=== {
+// ## xtt.DoBusyDo/noyun <命令序列> [<机器名称>]
+//    启动一个 do-busy-do 型的简易机器。
+//    跟 xtt.DoBusyDo 类似，但是不会主动恢复气血和精神。
+//    本别名也可以简写成 DBD/noyun。
+// };
+#alias {xtt.DoBusyDo/noyun} {
+    xtt.DoBusyDo {%1} {%2} false;
+};
+
+///=== {
+// ## DBD <命令序列> [<机器名称>]
+//    启动一个 do-busy-do 型的简易机器。
+//    xtt.DoBusyDo 的缩写。参见 HELP xtt.DoBusyDo。
+//
+// ## DBD/noyun <命令序列> [<机器名称>]
+//    启动一个 do-busy-do 型的简易机器。
+//    xtt.DoBusyDo/noyun 的缩写。参见 HELP xtt.DoBusyDo/noyun。
+// };
+
+#alias {DBD}        {xtt.DoBusyDo};
+#alias {DBD/noyun}  {xtt.DoBusyDo/noyun};
 
 ///=== {
 // ## xtt.DoBusyDo.Stop <机器名称>
