@@ -562,7 +562,7 @@ VAR {用 VAR 关键字定义的 PaoTin++ 变量清单，包含其中文含义} g
 
     #line oneshot #alias bot.DoBusyDo.$bot {#0};
 
-    okLog 机器 $bot 将会在 Busy 结束后停止。;
+    okLog 机器 $bot 将会在 busy 结束后停止。;
 };
 
 ///=== {
