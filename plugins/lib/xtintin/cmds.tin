@@ -573,21 +573,9 @@ VAR {用 VAR 关键字定义的 PaoTin++ 变量清单，包含其中文含义} g
 };
 
 ///=== {
-// ## DBD <命令序列> [<机器名称>]
-//    启动一个 do-busy-do 型的简易机器。
-//    xtt.DoBusyDo 的缩写。参见 HELP xtt.DoBusyDo。
-//
-// ## DBD/noyun <命令序列> [<机器名称>]
-//    启动一个 do-busy-do 型的简易机器。
-//    xtt.DoBusyDo/noyun 的缩写。参见 HELP xtt.DoBusyDo/noyun。
-// };
-
-#alias {DBD}        {xtt.DoBusyDo};
-#alias {DBD/noyun}  {xtt.DoBusyDo/noyun};
-
-///=== {
 // ## xtt.DoBusyDo.Stop <机器名称>
 //    停止一个 do-busy-do 型的简易机器。
+//    本别名也可以简写成 DBDS。
 //    参见 HELP xtt.DoBusyDo
 // };
 #alias {xtt.DoBusyDo.Stop} {
@@ -603,6 +591,24 @@ VAR {用 VAR 关键字定义的 PaoTin++ 变量清单，包含其中文含义} g
 
     okLog 机器 $bot 将会在 busy 结束后停止。;
 };
+
+///=== {
+// ## DBD <命令序列> [<机器名称>]
+//    启动一个 do-busy-do 型的简易机器。
+//    xtt.DoBusyDo 的缩写。参见 HELP xtt.DoBusyDo。
+//
+// ## DBD/noyun <命令序列> [<机器名称>]
+//    启动一个 do-busy-do 型的简易机器。
+//    xtt.DoBusyDo/noyun 的缩写。参见 HELP xtt.DoBusyDo/noyun。
+//
+// ## DBDS <机器名称>
+//    停止一个 do-busy-do 型的简易机器。
+//    参见 HELP xtt.DoBusyDo 和 xtt.DoBusyDo.Stop。
+// };
+
+#alias {DBD}        {xtt.DoBusyDo};
+#alias {DBD/noyun}  {xtt.DoBusyDo/noyun};
+#alias {DBDS}       {xtt.DoBusyDo.Stop};
 
 ///=== {
 // ## xtt.Stop <命令>
