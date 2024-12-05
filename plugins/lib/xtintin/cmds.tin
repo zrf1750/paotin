@@ -482,10 +482,94 @@ VAR {用 VAR 关键字定义的 PaoTin++ 变量清单，包含其中文含义} g
 };
 
 ///=== {
+// ## xtt.DoBusyDo <命令序列> [<机器名称>]
+//    启动一个 do-busy-do 型的简易机器。
+//    这种机器会在执行完一次命令序列后，进入 busy 状态，然后玩家期待 busy 结束之后，
+//    能够重复执行命令序列。最典型的比如打坐、修炼、凭吊，都是如此。
+//    这种模式是如此地常见，以至于我将其命名为 do-busy-do，并且提供了本别名。
+//
+//    为了进一步简化使用，本别名允许省略机器名称，此时将使用第一条命令作为机器名称。
+//    想要停止机器，可以使用 xtt.DoBusyDo.Stop 命令。
+//
+//    用法举例：
+//
+//      xtt.DoBusyDo pingdiao
+//          将启动一个凭吊机器，机器名为 pingdiao；
+//      xtt.DoBusyDo {xiulian taiji-shengong}
+//          启动一个修炼机器，机器名为 xiulian，即命令的名称，不包括参数部分；
+//      xtt.DoBusyDo {dazuo max; dazuo 10}
+//          启动一个打坐机器，机器名为 dazuo，即第一条命令 dazuo max 的命令部分；
+//      xtt.DoBusyDo {yun regenerate; tuna max; tuna 10} tuna;
+//          启动一个吐纳机器，机器名为 tuna，即第二个参数。
+// };
+#alias {xtt.DoBusyDo} {
+    #local cmds {%1};
+    #local bot  {%2};
+
+    #if { "$cmds" == "" } {
+        xtt.Usage %90;
+        #return;
+    };
+
+    #if { "$bot" == "" } {
+        #local bot {@slist.Get{{$cmds};1}};
+        #replace bot {^%S{| .*}$} {&1};
+    };
+
+    #line sub var #alias {bot.DoBusyDo.$bot} {
+        #if { @char.IsBusy{} } {
+            #delay {bot.DoBusyDo.$bot} {bot.DoBusyDo.$bot} 1;
+            #return;
+        };
+
+        #if { $$char[HP][气血百分比] < 30 } {
+            yun recover;
+        };
+
+        #if { $$char[HP][精神百分比] < 30 } {
+            yun regenerate;
+        };
+
+        #if { "$$char[HP][饥饿]" != "{正常|很饱}" } {
+            eat $$char[favorite][food];
+        };
+
+        #if { "$$char[HP][口渴]" != "{正常|很饱}" } {
+            drink $$char[favorite][water];
+        };
+
+        $cmds;
+        busy.Wait {bot.DoBusyDo.$bot};
+    };
+
+    bot.DoBusyDo.$bot;
+
+    okLog 机器 $bot 已启动，你可以用 xtt.DoBusyDo.Stop $bot 来停止它。;
+};
+
+///=== {
+// ## xtt.DoBusyDo.Stop <机器名称>
+//    停止一个 do-busy-do 型的简易机器。
+//    参见 HELP xtt.DoBusyDo
+// };
+#alias {xtt.DoBusyDo.Stop} {
+    #local bot {%1};
+
+    #if { "$bot" == "" } {
+        xtt.Usage %90;
+        #return;
+    };
+
+    #line oneshot #alias bot.DoBusyDo.$bot {#0};
+
+    okLog 机器 $bot 将会在 Busy 结束后停止。;
+};
+
+///=== {
 // ## xtt.Stop <命令>
 //    暂时阻断某个命令的执行。
 //    某些基于触发的机器会周而复始地执行动作。本命令可以用来终止它的运行，并保留状态。
-//    例如新手机器人会循环执行 ask job/do/finish 流程，那么只需要输入 xtt.Stop ask，
+//    例如新手机器会循环执行 ask job/do/finish 流程，那么只需要输入 xtt.Stop ask，
 //    就可以在下一次 ask NPC 时，暂停机器执行，但并不影响机器状态。此时玩家可以手动
 //    操作角色，临时去做点别的，比如收个包袱之类的，然后回到房间，手动执行一次 ask 命令，
 //    就可以继续机器运行了。
