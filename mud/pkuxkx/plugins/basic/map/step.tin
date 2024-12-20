@@ -531,6 +531,9 @@ VAR {清除门卫命令，默认为 attack}					map.step.crush.cmd	{attack};
     #action {^卢道之说道：「我就看不惯长这么好看的男人！」$}          {map.step.Try.crush {lu daozhi}};
     #action {^卢道之说道：「女人长这么丑，出来吓人吗？」$}            {map.step.Try.crush {lu daozhi}};
 
+    #nop 明教的疯子。;
+    #action {^阿善恶狠狠地盯着你：臭贼，我看你这次往哪儿跑。$}           {map.step.Try.crush {a shan}};
+
     #nop 扬州的衙门大门;
     #action {^衙役喝道：「威……武……」$}                                {map.step.Try.crush {ya yi}};
     #nop 扬州的兵营大门;
