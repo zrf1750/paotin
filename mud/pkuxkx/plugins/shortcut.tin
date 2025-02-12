@@ -193,8 +193,8 @@ load-lib sync;
 #action {^艄公说“到啦，上岸吧”，随即把一块踏脚板搭上堤岸。$E} {out} {9.500};
 #action {^大车停稳了下来，你可以下车(xia)了。$} {xia} {9.500};
 
-#action {^任务已经失败，离开请输入(leave %*)。$} {leave %1} {9.500};
-#action {^任务完成，想要离开请输入(leave %*)。$} {leave %1} {9.500};
+#action {^任务已经失败，离开请输入(leave %*)。$} {sync.Wait {leave %1}} {9.500};
+#action {^任务完成，想要离开请输入(leave %*)。$} {sync.Wait {leave %1}} {9.500};
 
 #action {^你掉转船头，迅速的划回到了鄱阳湖边。$E} {
     give xiang to ren;
